@@ -77,6 +77,11 @@ public class GenreService {
         return count == genreIds.size();
     }
 
+    @Transactional(readOnly = true)
+    public Genre getReference(short id) {
+        return entityManager.getReference(Genre.class, id);
+    }
+
     @Transactional
     @CacheEvict(value = "genres", allEntries = true)
     public void deleteGenre(short id) {

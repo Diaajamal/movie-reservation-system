@@ -1,6 +1,5 @@
 package com.diaa.movie_reservation.security;
 
-import com.diaa.movie_reservation.entity.Role;
 import com.diaa.movie_reservation.entity.User;
 import com.diaa.movie_reservation.service.UserService;
 import jakarta.servlet.FilterChain;
@@ -31,6 +30,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try{
                 String email = jwtUtil.extractEmail(token);
                 User user = userService.findByEmail(email);
+                if (user == null) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                    return;
+                }
 
                 var authorities = user.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.getName()))

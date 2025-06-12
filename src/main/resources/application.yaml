@@ -20,6 +20,7 @@ spring:
 
   cache:
     type: redis
+
   data:
     redis:
       host: localhost

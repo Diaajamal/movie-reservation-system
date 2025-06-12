@@ -21,7 +21,7 @@ public class GenreController {
     private final GenreService genreService;
 
 
-    @Operation(summary = "Get a genre by id")
+    @Operation(summary = "Add a new genre")
     @PostMapping("/add")
     public ResponseEntity<GenreResponse> addGenre(@Valid @RequestBody GenreRequest request) {
         GenreResponse response = genreService.addGenre(request);

@@ -2,6 +2,7 @@ package com.diaa.movie_reservation.service;
 
 import com.diaa.movie_reservation.dto.movie.MovieRequest;
 import com.diaa.movie_reservation.dto.movie.MovieResponse;
+import com.diaa.movie_reservation.entity.Genre;
 import com.diaa.movie_reservation.entity.Movie;
 import com.diaa.movie_reservation.mapper.MovieMapper;
 import com.diaa.movie_reservation.repository.MovieRepository;
@@ -13,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,11 +27,17 @@ public class MovieService {
 
     @Transactional
     public MovieResponse addMovie(MovieRequest movieRequest) {
-        Movie movie = movieMapper.toEntity(movieRequest);
-
         if (!genreService.isGenresValid(movieRequest.genreIds())) {
             throw new EntityNotFoundException("Invalid genre IDs");
         }
+
+        Movie movie = movieMapper.toEntity(movieRequest);
+
+        Set<Genre> genres = movieRequest.genreIds().stream()
+                .map(genreService::getReference)
+                .collect(Collectors.toSet());
+        movie.setGenres(genres);
+
         Movie savedMovie = movieRepository.save(movie);
         return movieMapper.toDTO(savedMovie);
     }

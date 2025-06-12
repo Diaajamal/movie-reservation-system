@@ -11,7 +11,6 @@ import com.diaa.movie_reservation.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,7 @@ public class AuthenticationService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         log.info("Processing login request for user: {}", request.email());
-        validatedCredentials(request.email(), request.password());
+        validateCredentials(request.email(), request.password());
 
         User user = userService.findByEmail(request.email());
         String token = jwtService.generateToken(user);
@@ -57,7 +56,7 @@ public class AuthenticationService {
         return new AuthResponse(token);
     }
 
-    private void validatedCredentials(String email, String password) {
+    private void validateCredentials(String email, String password) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (Exception e) {
