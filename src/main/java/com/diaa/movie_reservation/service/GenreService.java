@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.service;
 
+import com.diaa.movie_reservation.dto.genre.GenreListResponse;
 import com.diaa.movie_reservation.dto.genre.GenreRequest;
 import com.diaa.movie_reservation.dto.genre.GenreResponse;
 import com.diaa.movie_reservation.entity.Genre;
@@ -26,7 +27,7 @@ public class GenreService {
     private final EntityManager entityManager;
 
     @Transactional
-    @CacheEvict(value = "genres", allEntries = true)
+    @CacheEvict(value = "genres", key = "'all'")
     public GenreResponse addGenre(GenreRequest request) {
         Genre genre = genreMapper.toEntity(request);
         Genre savedGenre = genreRepository.save(genre);
@@ -34,7 +35,7 @@ public class GenreService {
     }
 
     @Transactional
-    @CacheEvict(value = "genres", allEntries = true)
+    @CacheEvict(value = "genres", key = "'all'")
     public GenreResponse updateGenre(short id, GenreRequest request) {
         Genre genre = genreRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Genre with id " + id + " does not exist."));
         genre.setName(request.name());
@@ -43,14 +44,13 @@ public class GenreService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "genres")
-    public List<GenreResponse> getAllGenres() {
+    @Cacheable(value = "genres", key = "'all'")
+    public GenreListResponse getAllGenres() {
         log.info("Fetching all genres");
         simulateSlowService(); // Simulate a slow service for demonstration purposes
         List<Genre> genres = genreRepository.findAll();
-        return genres.stream()
-                .map(genreMapper::toDTO)
-                .toList();
+        List<GenreResponse> genreResponses = genres.stream().map(genreMapper::toDTO).toList();
+        return new GenreListResponse(genreResponses);
     }
 
     private void simulateSlowService() {
@@ -83,7 +83,7 @@ public class GenreService {
     }
 
     @Transactional
-    @CacheEvict(value = "genres", allEntries = true)
+    @CacheEvict(value = "genres", key = "'all'")
     public void deleteGenre(short id) {
         if (!genreRepository.existsById(id)) {
             throw new EntityNotFoundException("Genre with id " + id + " does not exist.");

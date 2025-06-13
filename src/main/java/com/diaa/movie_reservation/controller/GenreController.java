@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.controller;
 
+import com.diaa.movie_reservation.dto.genre.GenreListResponse;
 import com.diaa.movie_reservation.dto.genre.GenreRequest;
 import com.diaa.movie_reservation.dto.genre.GenreResponse;
 import com.diaa.movie_reservation.service.GenreService;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/genres")
@@ -34,6 +34,7 @@ public class GenreController {
         GenreResponse response = genreService.updateGenre(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
     @Operation(summary = "Delete a genre by id")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteGenre(@PathVariable("id") short id) {
@@ -44,7 +45,7 @@ public class GenreController {
 
     @Operation(summary = "Get all genres")
     @GetMapping("/all")
-    public ResponseEntity<List<GenreResponse>> getAllGenres() {
+    public ResponseEntity<GenreListResponse> getAllGenres() {
         return ResponseEntity.ok(genreService.getAllGenres());
     }
 }
