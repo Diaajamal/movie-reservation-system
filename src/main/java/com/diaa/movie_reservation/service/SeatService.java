@@ -10,6 +10,7 @@ import com.diaa.movie_reservation.mapper.SeatMapper;
 import com.diaa.movie_reservation.repository.SeatRepository;
 import com.diaa.movie_reservation.repository.TicketRepository;
 import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -57,7 +58,7 @@ public class SeatService {
     public Seat getSeat(Long id) {
         log.info("Fetching seat with ID: {}", id);
         return seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Seat not found with ID: " + id));
     }
 
     public Page<SeatResponse> getAvailableSeatsByShow(Long showId,Pageable pageable) {

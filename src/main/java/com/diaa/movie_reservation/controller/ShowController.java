@@ -50,7 +50,7 @@ public class ShowController {
 
     @Operation(summary = "Get upcoming shows with pagination")
     @GetMapping("/upcoming")
-    public ResponseEntity<Page<ShowResponse>> getUpcomingShows(LocalDateTime showTimeAfter,
+    public ResponseEntity<Page<ShowResponse>> getUpcomingShows(@RequestParam LocalDateTime showTimeAfter,
                                                                @RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {
         Page<ShowResponse> shows = showService.getUpcomingShows(showTimeAfter, PageRequest.of(page, size));

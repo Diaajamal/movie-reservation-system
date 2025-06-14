@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -18,7 +19,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class Beans {
     @Bean
     public UserDetailsService userDetailsService(UserService userService) {
-        return userService::findByEmail;
+        return email -> {
+            var user = userService.findByEmail(email);
+            if (user == null) {
+                throw new UsernameNotFoundException("User not found: " + email);
+            }
+            return user;
+        };
     }
 
     @Bean
