@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 public record MovieResponse(
-        Long id,
+        long id,
         String title,
         String description,
         String director,

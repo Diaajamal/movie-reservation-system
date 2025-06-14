@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class MovieController {
     private final MovieService movieService;
 
     @Operation(summary = "Add a new movie")
+    @PreAuthorize("hasAuthority('ADMIN')")  // Only ADMIN can add movies
     @PostMapping("/add")
     public ResponseEntity<MovieResponse> add(@RequestBody @Valid MovieRequest movieRequest) {
         MovieResponse response = movieService.addMovie(movieRequest);

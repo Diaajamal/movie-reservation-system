@@ -1,11 +1,9 @@
 package com.diaa.movie_reservation.repository;
 
-import com.diaa.movie_reservation.entity.Movie;
+import com.diaa.movie_reservation.entity.Theater;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-
-
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Long> {
+public interface TheaterRepository extends JpaRepository<Theater, Short> {
 }

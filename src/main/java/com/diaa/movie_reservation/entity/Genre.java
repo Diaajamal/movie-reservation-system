@@ -20,7 +20,7 @@ import java.util.Set;
 public class Genre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private short id;
+    private Short id;
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -38,6 +38,6 @@ public class Genre {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Genre genre = (Genre) o;
-        return id != 0 && id == genre.id;
+        return id != 0 && id.equals(genre.id);
     }
 }

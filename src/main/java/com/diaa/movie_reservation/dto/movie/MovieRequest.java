@@ -20,7 +20,7 @@ public record MovieRequest(
         Set<@NotNull @Positive(message = "Genre ID must be positive") Short> genreIds,
 
         @Min(value = 1, message = "Duration must be at least 1 minute")
-        int duration,
+        Integer duration,
 
         @NotNull(message = "Release date is required")
         @PastOrPresent(message = "Release date cannot be in the future")

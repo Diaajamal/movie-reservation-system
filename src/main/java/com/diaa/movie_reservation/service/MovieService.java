@@ -49,6 +49,12 @@ public class MovieService {
         return movieMapper.toDTO(movie);
     }
 
+    @Transactional(readOnly = true)
+    public Movie getMovie(Long id){
+        return movieRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Movie not found with id: " + id));
+    }
+
+    @Transactional(readOnly = true)
     public Page<MovieResponse> getAllMovies(Pageable pageable) {
         log.info("Fetching all movies");
         Page<Movie> movies = movieRepository.findAll(pageable);

@@ -14,11 +14,11 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "genres")
+@ToString(exclude = {"genres", "shows"})
 public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -34,13 +34,20 @@ public class Movie {
     private Set<Genre> genres = new HashSet<>();
 
     @Column(nullable = false)
-    private int duration;
+    private Integer duration;
 
     @Column(nullable = false, name = "release_date")
     private LocalDate releaseDate;
 
     @Column(name = "poster_url")
     private String posterUrl;
+
+    @OneToMany(
+            mappedBy = "movie",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<Show> shows = new HashSet<>();
 
     @Override
     public int hashCode() {

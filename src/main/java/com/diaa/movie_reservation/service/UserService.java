@@ -57,4 +57,11 @@ public class UserService {
 
         log.info("User with ID {} promoted to admin successfully", userId);
     }
+
+    @Transactional(readOnly = true)
+    public User getUser(Long userId) {
+        log.info("Fetching user with ID: {}", userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+    }
 }
