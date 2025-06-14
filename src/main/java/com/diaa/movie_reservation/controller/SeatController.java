@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +24,7 @@ public class SeatController {
 
     @Operation(summary = "Add a new seat")
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<SeatResponse> add(@RequestBody @Valid SeatRequest request) {
         SeatResponse response = seatService.addSeat(request);
         return ResponseEntity.ok(response);

@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -51,7 +52,7 @@ public class Movie {
 
     @Override
     public int hashCode() {
-        return Long.hashCode(id);
+        return Objects.hashCode(id);
     }
 
     @Override
@@ -59,6 +60,6 @@ public class Movie {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Movie movie = (Movie) o;
-        return id != 0 && id == movie.id;
+        return id != null && id.equals(movie.id);
     }
 }

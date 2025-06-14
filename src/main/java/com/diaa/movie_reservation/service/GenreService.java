@@ -47,20 +47,9 @@ public class GenreService {
     @Cacheable(value = "genres", key = "'all'")
     public GenreListResponse getAllGenres() {
         log.info("Fetching all genres");
-        simulateSlowService(); // Simulate a slow service for demonstration purposes
         List<Genre> genres = genreRepository.findAll();
         List<GenreResponse> genreResponses = genres.stream().map(genreMapper::toDTO).toList();
         return new GenreListResponse(genreResponses);
-    }
-
-    private void simulateSlowService() {
-        log.info("Simulating a slow service for demonstration purposes");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Thread was interrupted while simulating slow service", e);
-        }
     }
 
     @Transactional(readOnly = true)

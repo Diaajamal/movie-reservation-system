@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class ShowController {
 
     @Operation(summary = "Add a new show")
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ShowResponse> add(@RequestBody @Valid ShowRequest request) {
         ShowResponse response = showService.addShow(request);
         return ResponseEntity.ok(response);
@@ -57,6 +59,7 @@ public class ShowController {
 
     @Operation(summary = "Update a show by ID")
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ShowResponse> updateShow(@PathVariable Long id, @RequestBody @Valid ShowRequest request) {
         ShowResponse response = showService.update(id, request);
         return ResponseEntity.ok(response);

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -37,7 +38,7 @@ public class Theater {
 
     @Override
     public int hashCode() {
-        return Short.hashCode(id);
+        return Objects.hashCode(id);
     }
 
     @Override

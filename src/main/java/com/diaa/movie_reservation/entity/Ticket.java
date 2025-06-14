@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -53,7 +54,9 @@ public class Ticket {
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
-        this.status = Status.AVAILABLE;
+        if (this.status == null) {
+            this.status = Status.AVAILABLE;
+        }
     }
 
     @PreUpdate
@@ -63,7 +66,7 @@ public class Ticket {
 
     @Override
     public int hashCode() {
-        return Long.hashCode(id);
+        return Objects.hashCode(id);
     }
 
     @Override

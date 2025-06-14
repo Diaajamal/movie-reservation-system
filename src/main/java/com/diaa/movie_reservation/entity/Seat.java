@@ -3,6 +3,8 @@ package com.diaa.movie_reservation.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(
         name = "seats",
@@ -21,7 +23,7 @@ public class Seat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "theater_id", nullable = false)
     private Theater theater;
 
@@ -33,7 +35,7 @@ public class Seat {
 
     @Override
     public int hashCode() {
-        return Long.hashCode(id);
+        return Objects.hashCode(id);
     }
 
     @Override

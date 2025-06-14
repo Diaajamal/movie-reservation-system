@@ -38,6 +38,6 @@ public class Genre {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Genre genre = (Genre) o;
-        return id != 0 && id.equals(genre.id);
+        return id != null && id.equals(genre.id);
     }
 }

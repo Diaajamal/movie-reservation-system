@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,12 +22,13 @@ public class TheaterController {
 
     @Operation(summary = "Add a new theater")
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<TheaterResponse> add(@RequestBody @Valid TheaterRequest request){
         TheaterResponse response = theaterService.addTheater(request);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Delete a theater by id")
+    @Operation(summary = "Get a theater by id")
     @GetMapping("/get/{id}")
     public ResponseEntity<TheaterResponse> getTheaterById(@PathVariable Short id) {
         TheaterResponse theater = theaterService.getTheaterById(id);
@@ -45,6 +47,7 @@ public class TheaterController {
 
     @Operation(summary = "Update a theater by id")
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<TheaterResponse> updateTheater(@PathVariable Short id, @RequestBody @Valid TheaterRequest request) {
         TheaterResponse response = theaterService.update(id,request);
         return ResponseEntity.ok(response);
