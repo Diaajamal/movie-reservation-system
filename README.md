@@ -100,23 +100,26 @@ The database schema includes the following tables:
 
 ```mermaid
 erDiagram
-    USERS {
-        BIGSERIAL id PK
+    users {
+        BIGINT id PK
         VARCHAR username
         VARCHAR password_hash
-        VARCHAR email
+        VARCHAR email UK
         TIMESTAMP created_at
     }
-    USER_ROLES {
-        BIGINT user_id FK
-        VARCHAR role
+    
+    user_roles {
+        BIGINT user_id PK,FK
+        VARCHAR role PK
     }
-    GENRES {
-        SMALLSERIAL id PK
-        VARCHAR name
+    
+    genres {
+        SMALLINT id PK
+        VARCHAR name UK
     }
-    MOVIES {
-        BIGSERIAL id PK
+    
+    movies {
+        BIGINT id PK
         VARCHAR title
         VARCHAR description
         VARCHAR director
@@ -124,24 +127,28 @@ erDiagram
         DATE release_date
         VARCHAR poster_url
     }
-    MOVIE_GENRES {
-        BIGINT movie_id FK
-        SMALLINT genre_id FK
+    
+    movie_genres {
+        BIGINT movie_id PK,FK
+        SMALLINT genre_id PK,FK
     }
-    THEATERS {
-        SMALLSERIAL id PK
+    
+    theaters {
+        SMALLINT id PK
         VARCHAR name
         INTEGER total_seats
         VARCHAR location
     }
-    SEATS {
-        BIGSERIAL id PK
+    
+    seats {
+        BIGINT id PK
         SMALLINT theater_id FK
         VARCHAR row_label
         SMALLINT number
     }
-    SHOWS {
-        BIGSERIAL id PK
+    
+    shows {
+        BIGINT id PK
         BIGINT movie_id FK
         SMALLINT theater_id FK
         TIMESTAMP show_time
@@ -149,8 +156,9 @@ erDiagram
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
-    TICKETS {
-        BIGSERIAL id PK
+    
+    tickets {
+        BIGINT id PK
         BIGINT user_id FK
         BIGINT show_id FK
         BIGINT seat_id FK
@@ -160,15 +168,19 @@ erDiagram
         TIMESTAMP updated_at
     }
 
-    USERS ||--o{ USER_ROLES : has
-    USERS ||--o{ TICKETS : books
-    MOVIES ||--o{ MOVIE_GENRES : classified
-    GENRES ||--o{ MOVIE_GENRES : categorizes
-    MOVIES ||--o{ SHOWS : schedules
-    THEATERS ||--o{ SHOWS : hosts
-    THEATERS ||--o{ SEATS : contains
-    SHOWS ||--o{ TICKETS : generates
-    SEATS ||--o{ TICKETS : assigned
+    %% Relationships
+    users ||--o{ user_roles : has
+    users ||--o{ tickets : books
+    
+    genres ||--o{ movie_genres : categorizes
+    movies ||--o{ movie_genres : belongs_to
+    movies ||--o{ shows : scheduled_in
+    
+    theaters ||--o{ seats : contains
+    theaters ||--o{ shows : hosts
+    
+    shows ||--o{ tickets : generates
+    seats ||--o{ tickets : reserved_for
 ```
 
 ## API Endpoints
