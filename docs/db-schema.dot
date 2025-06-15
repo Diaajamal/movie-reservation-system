@@ -1,0 +1,28 @@
+digraph DB {
+    rankdir=LR;
+    node [shape=record, fontname="Helvetica"];
+
+    users [label="{users|id: BIGSERIAL PK\lusername: VARCHAR\lpassword_hash: VARCHAR\lemail: VARCHAR\lcreated_at: TIMESTAMP\l}"];
+    user_roles [label="{user_roles|user_id: BIGINT FK\nusers(id)\lrole: VARCHAR\l}"];
+
+    genres [label="{genres|id: SMALLSERIAL PK\lname: VARCHAR\l}"];
+    movies [label="{movies|id: BIGSERIAL PK\ltitle: VARCHAR\ldescription: VARCHAR\ldirector: VARCHAR\lduration: INTEGER\lrelease_date: DATE\lposter_url: VARCHAR\l}"];
+    movie_genres [label="{movie_genres|movie_id: BIGINT FK movies(id)\lgenre_id: SMALLINT FK genres(id)\l}"];
+
+    theaters [label="{theaters|id: SMALLSERIAL PK\lname: VARCHAR\ltotal_seats: INTEGER\llocation: VARCHAR\l}"];
+    seats [label="{seats|id: BIGSERIAL PK\ntheater_id: SMALLINT FK theaters(id)\lrow_label: VARCHAR\nnumber: SMALLINT\l}"];
+    shows [label="{shows|id: BIGSERIAL PK\nmovie_id: BIGINT FK movies(id)\ntheater_id: SMALLINT FK theaters(id)\nshow_time: TIMESTAMP\nprice: NUMERIC\ncreated_at: TIMESTAMP\nupdated_at: TIMESTAMP\l}"];
+    tickets [label="{tickets|id: BIGSERIAL PK\nuser_id: BIGINT FK users(id)\nshow_id: BIGINT FK shows(id)\nseat_id: BIGINT FK seats(id)\nstatus: VARCHAR\nprice_paid: NUMERIC\ncreated_at: TIMESTAMP\nupdated_at: TIMESTAMP\l}"];
+
+    users -> user_roles [label="1..*", arrowhead="crow" ];
+    user_roles -> users [arrowhead="none", arrowtail="crow"];
+    movies -> movie_genres [label="1..*", arrowhead="crow" ];
+    movie_genres -> movies [arrowhead="none", arrowtail="crow"];
+    genres -> movie_genres [arrowhead="none", arrowtail="crow"];
+    theaters -> seats [label="1..*", arrowhead="crow"];
+    movies -> shows [label="1..*", arrowhead="crow"];
+    theaters -> shows [label="1..*", arrowhead="crow"];
+    shows -> tickets [label="1..*", arrowhead="crow"];
+    seats -> tickets [arrowhead="crow"];
+    users -> tickets [label="1..*", arrowhead="crow"];
+}

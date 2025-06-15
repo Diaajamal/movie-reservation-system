@@ -33,11 +33,9 @@ public class UserService {
             throw new AuthenticationException("User is not authenticated") {};
         }
 
-        String email = (String) authentication.getPrincipal();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        User user = (User) authentication.getPrincipal();
 
-        log.info("User info fetched successfully for email: {}", email);
+
         return userMapper.toDTO(user);
     }
 

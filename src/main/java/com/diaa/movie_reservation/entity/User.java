@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = "roles")
+@ToString(exclude = {"roles", "password", "createdAt"})
 public class User implements UserDetails, Principal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
