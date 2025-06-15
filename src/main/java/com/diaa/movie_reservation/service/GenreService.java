@@ -8,7 +8,6 @@ import com.diaa.movie_reservation.exception.genre.GenreNotFoundException;
 import com.diaa.movie_reservation.mapper.GenreMapper;
 import com.diaa.movie_reservation.repository.GenreRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -53,25 +52,6 @@ public class GenreService {
         return new GenreListResponse(genreResponses);
     }
 
-    @Transactional(readOnly = true)
-    public boolean genreExists(short id) {
-        return genreRepository.existsById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public boolean isGenresValid(Set<Short> genreIds) {
-        if (genreIds == null || genreIds.isEmpty()) {
-            return false;
-        }
-        long count = genreRepository.countByIdIn(genreIds);
-        return count == genreIds.size();
-    }
-
-    @Transactional(readOnly = true)
-    public Genre getReference(short id) {
-        return entityManager.getReference(Genre.class, id);
-    }
-
     @Transactional
     @CacheEvict(value = "genres", key = "'all'")
     public void deleteGenre(short id) {
@@ -82,4 +62,15 @@ public class GenreService {
         genreRepository.deleteById(id);
     }
 
+    public boolean isGenresValid(Set<Short> genreIds) {
+        if (genreIds == null || genreIds.isEmpty()) {
+            return false;
+        }
+        long count = genreRepository.countByIdIn(genreIds);
+        return count == genreIds.size();
+    }
+
+    public Genre getReference(short id) {
+        return entityManager.getReference(Genre.class, id);
+    }
 }

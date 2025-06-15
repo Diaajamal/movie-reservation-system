@@ -14,11 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -36,7 +33,7 @@ public class TicketService {
 
         User user = userService.getUser(request.userId());
         Show show = showService.getShow(request.showId());
-        Seat seat = seatService.getSeat(request.seatId());
+        Seat seat = seatService.getSeatForUpdate(request.seatId());
 
         if (!seat.getTheater().getId().equals(show.getTheater().getId())) {
             throw new SeatNotFoundException("Seat doesn't exist in the given theater");
@@ -101,19 +98,19 @@ public class TicketService {
         return response;
     }
 
-    @Transactional(readOnly = true)
-    public List<Long> findSeatsByShowIdAndStatus(Long showId, Status status) {
-        log.info("Fetching taken seat IDs for show ID: {}", showId);
-
-        // Validate show existence
-        if (showId == null) {
-            throw new NullPointerException("Show ID must not be null");
-        }
-
-        // Fetch taken seat IDs
-        List<Long> takenSeatIds = ticketRepository.findSeatsByShowIdAndStatus(showId, status);
-        log.info("Found {} taken seat IDs for show ID: {}", takenSeatIds.size(), showId);
-
-        return takenSeatIds;
-    }
+//    @Transactional(readOnly = true)
+//    public List<Long> findSeatsByShowIdAndStatus(Long showId, Status status) {
+//        log.info("Fetching taken seat IDs for show ID: {}", showId);
+//
+//        // Validate show existence
+//        if (showId == null) {
+//            throw new NullPointerException("Show ID must not be null");
+//        }
+//
+//        // Fetch taken seat IDs
+//        List<Long> takenSeatIds = ticketRepository.findSeatsByShowIdAndStatus(showId, status);
+//        log.info("Found {} taken seat IDs for show ID: {}", takenSeatIds.size(), showId);
+//
+//        return takenSeatIds;
+//    }
 }

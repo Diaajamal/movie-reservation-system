@@ -8,7 +8,6 @@ import com.diaa.movie_reservation.exception.genre.GenreNotFoundException;
 import com.diaa.movie_reservation.exception.movie.MovieNotFoundException;
 import com.diaa.movie_reservation.mapper.MovieMapper;
 import com.diaa.movie_reservation.repository.MovieRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -52,11 +51,6 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
-    public Movie getMovie(Long id){
-        return movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
-    }
-
-    @Transactional(readOnly = true)
     public Page<MovieResponse> getAllMovies(Pageable pageable) {
         log.info("Fetching all movies");
         Page<Movie> movies = movieRepository.findAll(pageable);
@@ -67,5 +61,9 @@ public class MovieService {
             log.info("Found {} movies", movies.getNumberOfElements());
             return movies.map(movieMapper::toDTO);
         }
+    }
+
+    public Movie getMovie(Long id){
+        return movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
     }
 }

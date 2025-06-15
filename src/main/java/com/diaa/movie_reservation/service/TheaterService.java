@@ -40,12 +40,6 @@ public class TheaterService {
     }
 
     @Transactional(readOnly = true)
-    public Theater getTheater(Short id){
-        return theaterRepository.findById(id)
-                .orElseThrow(() -> new TheaterNotFoundException("Theater with id " + id + " does not exist."));
-    }
-
-    @Transactional(readOnly = true)
     public Page<TheaterResponse> getAllTheaters(PageRequest of) {
         log.info("Fetching all theaters with pagination: page={}, size={}", of.getPageNumber(), of.getPageSize());
         Page<Theater> theaters = theaterRepository.findAll(of);
@@ -69,4 +63,10 @@ public class TheaterService {
         log.info("Theater updated successfully with ID: {}", updatedTheater.getId());
         return theaterMapper.toDTO(updatedTheater);
     }
+
+    public Theater getTheater(Short id){
+        return theaterRepository.findById(id)
+                .orElseThrow(() -> new TheaterNotFoundException("Theater with id " + id + " does not exist."));
+    }
+
 }

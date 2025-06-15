@@ -1,6 +1,7 @@
 package com.diaa.movie_reservation.security;
 
 import com.diaa.movie_reservation.entity.User;
+import com.diaa.movie_reservation.service.JwtService;
 import com.diaa.movie_reservation.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +20,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     private final UserService userService;
 
     @Override
@@ -28,7 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try{
-                String email = jwtUtil.extractEmail(token);
+                String email = jwtService.extractEmail(token);
                 User user = userService.findByEmail(email);
                 if (user == null) {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");

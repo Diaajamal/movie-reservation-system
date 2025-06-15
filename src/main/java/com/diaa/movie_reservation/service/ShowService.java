@@ -9,7 +9,6 @@ import com.diaa.movie_reservation.entity.Theater;
 import com.diaa.movie_reservation.exception.show.ShowNotFoundException;
 import com.diaa.movie_reservation.mapper.ShowMapper;
 import com.diaa.movie_reservation.repository.ShowRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -94,7 +93,6 @@ public class ShowService {
         return showMapper.toDTO(updatedShow);
     }
 
-    @Transactional(readOnly = true)
     public Show getShow(Long id) {
         log.info("Fetching show with ID: {}", id);
         return showRepository.findById(id)

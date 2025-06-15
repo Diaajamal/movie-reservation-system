@@ -11,7 +11,6 @@ import com.diaa.movie_reservation.exception.seat.SeatNotFoundException;
 import com.diaa.movie_reservation.mapper.SeatMapper;
 import com.diaa.movie_reservation.repository.SeatRepository;
 import com.diaa.movie_reservation.repository.TicketRepository;
-import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,13 +54,8 @@ public class SeatService {
         return seats.map(seatMapper::toDTO);
     }
 
-    @Transactional(readOnly = true)
-    public Seat getSeat(Long id) {
-        log.info("Fetching seat with ID: {}", id);
-        return seatRepository.findById(id)
-                .orElseThrow(() -> new SeatNotFoundException("Seat not found with ID: " + id));
-    }
 
+    @Transactional(readOnly = true)
     public Page<SeatResponse> getAvailableSeatsByShow(Long showId,Pageable pageable) {
         log.info("Fetching available seats for show ID: {}", showId);
         // Validate show existence
@@ -74,6 +68,11 @@ public class SeatService {
 
         log.info("Found {} available seats for show ID: {}", freeSeats.getTotalElements(), showId);
         return freeSeats.map(seatMapper::toDTO);
+    }
+
+    public Seat getSeatForUpdate(Long id) {
+        return seatRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found with id: " + id));
     }
 
     private boolean isSeatExists(Short theaterId, String rowLabel, short number) {

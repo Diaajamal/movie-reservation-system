@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.security;
 
+import com.diaa.movie_reservation.service.JwtService;
 import com.diaa.movie_reservation.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 class JwtAuthFilterTest {
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
     private UserService userService;
     private JwtAuthFilter jwtAuthFilter;
 
     @BeforeEach
     void setUp() {
-        jwtUtil = mock(JwtUtil.class);
+        jwtService = mock(JwtService.class);
         userService = mock(UserService.class);
-        jwtAuthFilter = new JwtAuthFilter(jwtUtil, userService);
+        jwtAuthFilter = new JwtAuthFilter(jwtService, userService);
     }
 
     @Test
@@ -34,7 +35,7 @@ class JwtAuthFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain filterChain = new MockFilterChain();
 
-        when(jwtUtil.extractEmail("testToken")).thenReturn("unknown@example.com");
+        when(jwtService.extractEmail("testToken")).thenReturn("unknown@example.com");
         when(userService.findByEmail("unknown@example.com")).thenReturn(null);
 
         jwtAuthFilter.doFilterInternal(request, response, filterChain);

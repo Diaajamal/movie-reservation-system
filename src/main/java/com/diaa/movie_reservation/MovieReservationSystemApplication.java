@@ -9,7 +9,6 @@ import org.springframework.cache.annotation.EnableCaching;
 public class MovieReservationSystemApplication {
 
     public static void main(String[] args) {
-        // Start the Spring Boot application
         SpringApplication.run(MovieReservationSystemApplication.class, args);
     }
 

@@ -1,6 +1,5 @@
 package com.diaa.movie_reservation.security;
 
-import com.diaa.movie_reservation.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

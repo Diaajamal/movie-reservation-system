@@ -23,10 +23,10 @@ public class Seat {
     private Theater theater;
 
     @Column(name = "row_label", nullable = false)
-    private String rowLabel;  // e.g. "A", "B", "AA", "VIP"
+    private String rowLabel;
 
     @Column(nullable = false)
-    private short number;     // e.g. 1, 2, …, 20
+    private short number;
 
     @Override
     public int hashCode() {
