@@ -49,9 +49,6 @@ public class Ticket {
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
-        if (this.status == null) {
-            this.status = Status.AVAILABLE;
-        }
     }
 
     @PreUpdate

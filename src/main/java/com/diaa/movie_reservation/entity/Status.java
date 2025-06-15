@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Status {
-    AVAILABLE("AVAILABLE"),
     BOOKED("BOOKED"),
     CANCELLED("CANCELLED");
 

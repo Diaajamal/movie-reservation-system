@@ -58,7 +58,8 @@ CREATE TABLE seats (
                        row_label VARCHAR(10) NOT NULL,
                        number SMALLINT NOT NULL,
                        FOREIGN KEY (theater_id) REFERENCES theaters(id) ON DELETE CASCADE,
-                       CONSTRAINT uq_seat_unique UNIQUE (theater_id, row_label, number)
+                       CONSTRAINT uq_seat_unique UNIQUE (theater_id, row_label, number),
+                       CONSTRAINT chk_positive_seat_number CHECK (number > 0)
 );
 
 -- =====================
@@ -74,7 +75,8 @@ CREATE TABLE shows (
                        updated_at TIMESTAMP,
                        FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
                        FOREIGN KEY (theater_id) REFERENCES theaters(id) ON DELETE CASCADE,
-                       CONSTRAINT uq_show_unique UNIQUE (movie_id, theater_id, show_time)
+                       CONSTRAINT uq_show_unique UNIQUE (movie_id, theater_id, show_time),
+                       CONSTRAINT chk_positive_price CHECK (price > 0)
 );
 
 -- =====================
@@ -93,8 +95,6 @@ CREATE TABLE tickets (
                          FOREIGN KEY (show_id) REFERENCES shows(id) ON DELETE CASCADE,
                          FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE
 );
-
--- Add partial unique index for only BOOKED tickets
 CREATE UNIQUE INDEX unique_booked_ticket
     ON tickets (show_id, seat_id)
     WHERE status = 'BOOKED';
