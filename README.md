@@ -184,18 +184,47 @@ spring:
 ```
 ## API Endpoints
 
-Refer to each controller for endpoints. Example:
+### Authentication
 
-* `POST /api/auth/register` – Register a new user
-* `POST /api/auth/login` – Authenticate and retrieve JWT
-* `GET /api/genres` – List all genres
-* `POST /api/movies` – Create a new movie
-* …
+- `POST /api/auth/register` – Register user
+- `POST /api/auth/login` – Authenticate user
+
+### Movie Management
+
+- `POST /api/v1/movies/add` – Add a movie
+- `GET /api/v1/movies/get/{id}` – Get movie by ID
+- `GET /api/v1/movies/all` – List movies with pagination
+- `PUT /api/v1/movies/update/{id}` – Update movie details
+- `DELETE /api/v1/movies/delete/{id}` – Delete movie
+
+### Show Management
+
+- `POST /api/v1/shows/add` – Add show
+- `GET /api/v1/shows/get/{id}` – Get show details
+- `GET /api/v1/shows/all` – List shows with filters
+- `GET /api/v1/shows/upcoming` – List upcoming shows
+- `PUT /api/v1/shows/update/{id}` – Update show details
+- `GET /api/v1/shows/{showId}/seats` – Get seat details for a show
+
+### Reservations
+
+- `POST /api/v1/reservations/reserve` – Book ticket
+- `PUT /api/v1/reservations/cancel/{ticketId}` – Cancel ticket
+- `GET /api/v1/reservations/me` – Get current user's reservations
+
+### Reporting
+
+- `GET /api/v1/reports/reservations` – List reservations with filters
 
 ## Usage
 
-Use tools like Postman or curl to interact with the REST API. Ensure JWT token is included in `Authorization` header: `Bearer <token>`.
+Use Postman or curl to test endpoints. Include JWT in the header:
+
+```
+Authorization: Bearer <token>
+```
 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
