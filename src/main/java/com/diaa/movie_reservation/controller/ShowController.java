@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.controller;
 
+import com.diaa.movie_reservation.dto.seat.ShowSeatResponse;
 import com.diaa.movie_reservation.dto.show.ShowRequest;
 import com.diaa.movie_reservation.dto.show.ShowResponse;
 import com.diaa.movie_reservation.dto.show.ShowResponseExtended;
@@ -32,27 +33,29 @@ public class ShowController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get a show by ID with extended details")
+    @Operation(summary = "Get a show by ID with extended details (including movie and theater details)")
     @GetMapping("/get/{id}")
-    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<ShowResponseExtended> getShowById(@PathVariable Long id) {
         ShowResponseExtended show = showService.getShowById(id);
         return ResponseEntity.ok(show);
     }
 
-    @Operation(summary = "Get all shows with pagination")
+    @Operation(summary = "Get all shows with pagination and optional date range filtering")
     @GetMapping("/all")
-    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<ShowResponse>> getAllShows(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<ShowResponse> shows = showService.getAllShows(PageRequest.of(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) LocalDateTime fromDate,
+            @RequestParam(required = false) LocalDateTime toDate) {
+        Page<ShowResponse> shows = showService.getAllShowsBetweenDates(PageRequest.of(page, size), fromDate, toDate);
         return ResponseEntity.ok(shows);
     }
 
     @Operation(summary = "Get upcoming shows with pagination")
     @GetMapping("/upcoming")
-    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<ShowResponse>> getUpcomingShows(@RequestParam LocalDateTime showTimeAfter,
                                                                @RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {
@@ -65,6 +68,16 @@ public class ShowController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ShowResponse> updateShow(@PathVariable Long id, @RequestBody @Valid ShowRequest request) {
         ShowResponse response = showService.update(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get available & booked seats for a show")
+    @GetMapping("/{showId}/seats")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<Page<ShowSeatResponse>> getShowSeats(@PathVariable Long showId,
+                                                               @RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "10") int size) {
+        Page<ShowSeatResponse> response = showService.getShowSeats(showId, PageRequest.of(page, size));
         return ResponseEntity.ok(response);
     }
 }

@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class SeatController {
     private final SeatService seatService;
 
-    // Add methods for seat operations here, e.g., getSeatsByTheater, reserveSeat, etc.
-
     @Operation(summary = "Add a new seat")
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -30,7 +28,6 @@ public class SeatController {
         return ResponseEntity.ok(response);
     }
 
-    //get all seats by theater id
     @GetMapping("/theater/{theaterId}")
     @Operation(summary = "Get all seats by theater ID")
     @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
@@ -41,7 +38,6 @@ public class SeatController {
         return ResponseEntity.ok(response);
     }
 
-    //get available seats by show id
     @GetMapping("/available/{showId}")
     @Operation(summary = "Get available seats by show ID")
     @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")

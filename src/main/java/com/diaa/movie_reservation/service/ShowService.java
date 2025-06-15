@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.service;
 
+import com.diaa.movie_reservation.dto.seat.ShowSeatResponse;
 import com.diaa.movie_reservation.dto.show.ShowRequest;
 import com.diaa.movie_reservation.dto.show.ShowResponse;
 import com.diaa.movie_reservation.dto.show.ShowResponseExtended;
@@ -59,13 +60,17 @@ public class ShowService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ShowResponse> getAllShows(Pageable pageable) {
-        log.info("Fetching all shows with pagination: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
-        Page<Show> shows = showRepository.findAll(pageable);
+    public Page<ShowResponse> getAllShowsBetweenDates(Pageable pageable, LocalDateTime from, LocalDateTime to) {
+        log.info("Fetching shows between {} and {}", from, to);
+        if (from == null || to == null) {
+            log.info("No date range provided, fetching all shows without date filter");
+            from = LocalDateTime.MIN;
+            to = LocalDateTime.MAX;
+        }
+        Page<Show>  shows = showRepository.findAllByShowTimeBetween(from, to, pageable);
+        log.info("Fetching shows between {} and {}", from, to);
         if (shows.isEmpty()) {
             log.warn("No shows found");
-        } else {
-            log.info("Found {} shows", shows.getNumberOfElements());
         }
         return shows.map(showMapper::toDTO);
     }
@@ -109,4 +114,9 @@ public class ShowService {
                 .orElseThrow(() -> new ShowNotFoundException("Show with id " + id + " does not exist."));
     }
 
+    @Transactional
+    public Page<ShowSeatResponse> getShowSeats(Long showId, Pageable pageable) {
+        log.info("Fetching show seats for show ID: {}", showId);
+        return showRepository.findShowSeats(showId,pageable);
+    }
 }

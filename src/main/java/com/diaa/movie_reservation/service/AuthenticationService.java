@@ -12,10 +12,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -31,12 +34,10 @@ public class AuthenticationService {
     @Transactional
     public void register(RegisterRequest request) {
         log.info("Processing registration request for user: {}", request.email());
-
         if (userExists(request.email())) {
             log.warn("User with email {} already exists", request.email());
             throw new UserAlreadyExistsException("User with this email already exists");
         }
-
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(Set.of(Role.USER));
@@ -47,18 +48,19 @@ public class AuthenticationService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         log.info("Processing login request for user: {}", request.email());
-        validateCredentials(request.email(), request.password());
-
-        User user = userService.findByEmail(request.email());
-        String token = jwtService.generateToken(user);
-
+        Authentication auth =  validateCredentials(request.email(), request.password());
+        Map<String, Object> claims = new HashMap<>();
+        User user = (User) auth.getPrincipal();
+        claims.put("roles", user.getRoles());
+        String token = jwtService.generateToken(claims,user);
         log.info("Successfully authenticated user: {}", request.email());
+
         return new AuthResponse(token);
     }
 
-    private void validateCredentials(String email, String password) {
+    private Authentication validateCredentials(String email, String password) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (Exception e) {
             log.warn("Invalid credentials attempt for user: {}", email);
             throw new InvalidCredentialsException("Invalid email or password", e);

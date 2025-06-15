@@ -8,6 +8,7 @@ import com.diaa.movie_reservation.exception.genre.GenreNotFoundException;
 import com.diaa.movie_reservation.exception.movie.MovieNotFoundException;
 import com.diaa.movie_reservation.mapper.MovieMapper;
 import com.diaa.movie_reservation.repository.MovieRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -62,8 +63,41 @@ public class MovieService {
             return movies.map(movieMapper::toDTO);
         }
     }
+    @Transactional
+    public MovieResponse updateMovie(Long id, @Valid MovieRequest movieRequest) {
+        log.info("Updating movie with id: {}", id);
+        Movie existingMovie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
+
+        if (!genreService.isGenresValid(movieRequest.genreIds())) {
+            throw new GenreNotFoundException("Invalid genre IDs");
+        }
+
+        existingMovie.setTitle(movieRequest.title());
+        existingMovie.setDescription(movieRequest.description());
+        existingMovie.setDuration(movieRequest.duration());
+        existingMovie.setReleaseDate(movieRequest.releaseDate());
+
+        Set<Genre> genres = movieRequest.genreIds().stream()
+                .map(genreService::getReference)
+                .collect(Collectors.toSet());
+        existingMovie.setGenres(genres);
+
+        Movie updatedMovie = movieRepository.save(existingMovie);
+        return movieMapper.toDTO(updatedMovie);
+    }
+
+    @Transactional
+    public void deleteMovie(Long id) {
+        log.info("Deleting movie with id: {}", id);
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
+        movieRepository.delete(movie);
+        log.info("Movie with id: {} deleted successfully", id);
+    }
 
     public Movie getMovie(Long id){
         return movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
     }
+
+
+
 }

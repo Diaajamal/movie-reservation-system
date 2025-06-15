@@ -11,6 +11,7 @@ import com.diaa.movie_reservation.repository.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,4 +73,5 @@ public class SeatService {
         log.info("Checking if seat already exists in theater ID: {}, row: {}, number: {}", theaterId, rowLabel, number);
         return seatRepository.existsByTheater_IdAndRowLabelAndNumber(theaterId, rowLabel, number);
     }
+
 }

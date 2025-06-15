@@ -44,4 +44,18 @@ public class MovieController {
         Page<MovieResponse> movies = movieService.getAllMovies(PageRequest.of(page, size));
         return ResponseEntity.ok(movies);
     }
+
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<MovieResponse> updateMovie(@PathVariable Long id, @RequestBody @Valid MovieRequest movieRequest) {
+        MovieResponse updatedMovie = movieService.updateMovie(id, movieRequest);
+        return ResponseEntity.ok(updatedMovie);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<String> deleteMovie(@PathVariable Long id) {
+        movieService.deleteMovie(id);
+        return ResponseEntity.ok("Movie deleted successfully");
+    }
 }

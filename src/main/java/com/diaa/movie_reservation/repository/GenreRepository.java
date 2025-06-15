@@ -15,7 +15,6 @@ public interface GenreRepository extends JpaRepository<Genre, Short> {
     long countByIdIn(Set<Short> ids);
 
     @Modifying
-    @Transactional
     @Query(value = "DELETE FROM movie_genres WHERE genre_id = :genreId", nativeQuery = true)
     void deleteGenreFromMovieGenres(short genreId);
 }

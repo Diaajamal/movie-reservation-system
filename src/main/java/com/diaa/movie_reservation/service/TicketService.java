@@ -1,5 +1,6 @@
 package com.diaa.movie_reservation.service;
 
+import com.diaa.movie_reservation.dto.reservation.ReservationResponse;
 import com.diaa.movie_reservation.dto.ticket.TicketRequest;
 import com.diaa.movie_reservation.dto.ticket.TicketResponse;
 import com.diaa.movie_reservation.entity.*;
@@ -12,10 +13,13 @@ import com.diaa.movie_reservation.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -75,7 +79,7 @@ public class TicketService {
     public TicketResponse cancelTicket(Long ticketId, Authentication authentication) {
         log.info("Cancelling ticket with ID: {} that belongs to the user with email: {}", ticketId, authentication.getName());
 
-        User user = userService.findByEmail(authentication.getName());
+        User user = (User) authentication.getPrincipal();
         if (user == null) {
             throw new UserNotFoundException("User not found");
         }
@@ -98,19 +102,39 @@ public class TicketService {
         return response;
     }
 
-//    @Transactional(readOnly = true)
-//    public List<Long> findSeatsByShowIdAndStatus(Long showId, Status status) {
-//        log.info("Fetching taken seat IDs for show ID: {}", showId);
-//
-//        // Validate show existence
-//        if (showId == null) {
-//            throw new NullPointerException("Show ID must not be null");
-//        }
-//
-//        // Fetch taken seat IDs
-//        List<Long> takenSeatIds = ticketRepository.findSeatsByShowIdAndStatus(showId, status);
-//        log.info("Found {} taken seat IDs for show ID: {}", takenSeatIds.size(), showId);
-//
-//        return takenSeatIds;
-//    }
+    @Transactional(readOnly = true)
+    public List<TicketResponse> getMyReservations(Authentication authentication) {
+        log.info("Fetching reservations for user: {}", authentication.getName());
+
+        User user = (User) authentication.getPrincipal();
+        if (user == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        var tickets = ticketRepository.findByUser_IdAndShow_ShowTimeAfterAndStatus(user.getId(), LocalDateTime.now(), Status.BOOKED);
+        if (tickets.isEmpty()) {
+            log.info("No reservations found for user: {}", user.getEmail());
+        }
+
+        var responses = tickets.stream()
+                .map(ticketMapper::toDTO)
+                .toList();
+
+        log.info("Found {} reservations for user: {}", responses.size(), user.getEmail());
+        return responses;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReservationResponse> getAllReservations(Long showId, Status status, Pageable pageable) {
+        log.info("Fetching all reservations for show ID: {} with status: {}", showId, status);
+
+        Page<ReservationResponse> reservations = ticketRepository.findReservationsByShowAndStatus(showId, status, pageable);
+        if (reservations.isEmpty()) {
+            log.info("No reservations found for show ID: {}", showId);
+        } else {
+            log.info("Found {} reservations for show ID: {}", reservations.getTotalElements(), showId);
+        }
+
+        return reservations;
+    }
 }
