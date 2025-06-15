@@ -4,6 +4,8 @@ import com.diaa.movie_reservation.dto.movie.MovieRequest;
 import com.diaa.movie_reservation.dto.movie.MovieResponse;
 import com.diaa.movie_reservation.entity.Genre;
 import com.diaa.movie_reservation.entity.Movie;
+import com.diaa.movie_reservation.exception.genre.GenreNotFoundException;
+import com.diaa.movie_reservation.exception.movie.MovieNotFoundException;
 import com.diaa.movie_reservation.mapper.MovieMapper;
 import com.diaa.movie_reservation.repository.MovieRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,7 +30,7 @@ public class MovieService {
     @Transactional
     public MovieResponse addMovie(MovieRequest movieRequest) {
         if (!genreService.isGenresValid(movieRequest.genreIds())) {
-            throw new EntityNotFoundException("Invalid genre IDs");
+            throw new GenreNotFoundException("Invalid genre IDs");
         }
 
         Movie movie = movieMapper.toEntity(movieRequest);
@@ -45,13 +47,13 @@ public class MovieService {
     @Transactional(readOnly = true)
     public MovieResponse getMovieById(Long id) {
         log.info("Fetching movie with id: {}", id);
-        Movie movie = movieRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Movie not found with id: " + id));
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
         return movieMapper.toDTO(movie);
     }
 
     @Transactional(readOnly = true)
     public Movie getMovie(Long id){
-        return movieRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Movie not found with id: " + id));
+        return movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
     }
 
     @Transactional(readOnly = true)

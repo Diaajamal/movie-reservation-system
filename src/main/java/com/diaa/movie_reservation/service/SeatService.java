@@ -6,11 +6,12 @@ import com.diaa.movie_reservation.entity.Seat;
 import com.diaa.movie_reservation.entity.Show;
 import com.diaa.movie_reservation.entity.Status;
 import com.diaa.movie_reservation.entity.Theater;
+import com.diaa.movie_reservation.exception.seat.SeatExistsException;
+import com.diaa.movie_reservation.exception.seat.SeatNotFoundException;
 import com.diaa.movie_reservation.mapper.SeatMapper;
 import com.diaa.movie_reservation.repository.SeatRepository;
 import com.diaa.movie_reservation.repository.TicketRepository;
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,7 +37,7 @@ public class SeatService {
         log.info("Adding new seat: {}", request);
         if(isSeatExists(request.theaterId(), request.rowLabel(), request.number())) {
             log.error("Seat already exists in theater ID: {}, row: {}, number: {}", request.theaterId(), request.rowLabel(), request.number());
-            throw new EntityExistsException("Seat already exists in the specified theater.");
+            throw new SeatExistsException("Seat already exists in the specified theater.");
         }
         Seat seat = seatMapper.toEntity(request);
         Theater theater = theaterService.getTheater(request.theaterId());
@@ -58,7 +59,7 @@ public class SeatService {
     public Seat getSeat(Long id) {
         log.info("Fetching seat with ID: {}", id);
         return seatRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Seat not found with ID: " + id));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found with ID: " + id));
     }
 
     public Page<SeatResponse> getAvailableSeatsByShow(Long showId,Pageable pageable) {

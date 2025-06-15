@@ -34,6 +34,7 @@ public class ShowController {
 
     @Operation(summary = "Get a show by ID with extended details")
     @GetMapping("/get/{id}")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<ShowResponseExtended> getShowById(@PathVariable Long id) {
         ShowResponseExtended show = showService.getShowById(id);
         return ResponseEntity.ok(show);
@@ -41,6 +42,7 @@ public class ShowController {
 
     @Operation(summary = "Get all shows with pagination")
     @GetMapping("/all")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<ShowResponse>> getAllShows(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -50,6 +52,7 @@ public class ShowController {
 
     @Operation(summary = "Get upcoming shows with pagination")
     @GetMapping("/upcoming")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<ShowResponse>> getUpcomingShows(@RequestParam LocalDateTime showTimeAfter,
                                                                @RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {

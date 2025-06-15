@@ -30,6 +30,7 @@ public class TheaterController {
 
     @Operation(summary = "Get a theater by id")
     @GetMapping("/get/{id}")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<TheaterResponse> getTheaterById(@PathVariable Short id) {
         TheaterResponse theater = theaterService.getTheaterById(id);
         return ResponseEntity.ok(theater);
@@ -37,6 +38,7 @@ public class TheaterController {
 
     @Operation(summary = "Get all theaters")
     @GetMapping("/all")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<TheaterResponse>> getAllTheaters(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

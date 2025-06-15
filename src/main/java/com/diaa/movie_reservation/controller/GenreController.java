@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -23,6 +24,7 @@ public class GenreController {
 
     @Operation(summary = "Add a new genre")
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<GenreResponse> addGenre(@Valid @RequestBody GenreRequest request) {
         GenreResponse response = genreService.addGenre(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -30,6 +32,7 @@ public class GenreController {
 
     @Operation(summary = "Update a genre by id")
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<GenreResponse> updateGenre(@PathVariable("id") short id, @Valid @RequestBody GenreRequest request) {
         GenreResponse response = genreService.updateGenre(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -37,6 +40,7 @@ public class GenreController {
 
     @Operation(summary = "Delete a genre by id")
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteGenre(@PathVariable("id") short id) {
         genreService.deleteGenre(id);
         return ResponseEntity.noContent().build();
@@ -45,6 +49,7 @@ public class GenreController {
 
     @Operation(summary = "Get all genres")
     @GetMapping("/all")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<GenreListResponse> getAllGenres() {
         return ResponseEntity.ok(genreService.getAllGenres());
     }

@@ -6,12 +6,7 @@ import lombok.*;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "seats",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"theater_id", "row_label", "number"})
-        }
-)
+@Table(name = "seats")
 @Getter
 @Setter
 @AllArgsConstructor

@@ -22,6 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private static final String[] SWAGGER_WHITELIST = {"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**"};
+    private static final String ADMIN = "ADMIN";
+    private static final String USER = "USER";
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -33,9 +35,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/v1/user/**").hasAnyAuthority("ADMIN", "USER")
-                        .requestMatchers("/api/v1/movies/**").hasAnyAuthority("ADMIN", "USER").anyRequest().authenticated())
+                        .requestMatchers("/api/v1/admin/**").hasAuthority(ADMIN)
+                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(ADMIN, USER)
+                        .requestMatchers("/api/v1/movies/**").hasAnyAuthority(ADMIN, USER).anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

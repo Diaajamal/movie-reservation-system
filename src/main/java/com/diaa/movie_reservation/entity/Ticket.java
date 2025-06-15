@@ -9,19 +9,13 @@ import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "tickets",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uq_ticket_unique",
-                columnNames = {"show_id", "seat_id"}
-        )
-)
+@Table(name = "tickets")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString(exclude = {"user","show", "seat"})
+@ToString(exclude = {"user", "show", "seat"})
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +33,7 @@ public class Ticket {
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 

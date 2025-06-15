@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record TicketRequest(
         @NotNull(message = "User ID is required")
-        Long userID,
+        Long userId,
 
         @NotNull(message = "Show ID is required")
         Long showId,

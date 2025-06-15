@@ -9,13 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "shows",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uq_show_unique",
-                columnNames = {"movie_id", "theater_id", "show_time"}
-        )
-)
+@Table(name = "shows")
 @Getter
 @Setter
 @AllArgsConstructor

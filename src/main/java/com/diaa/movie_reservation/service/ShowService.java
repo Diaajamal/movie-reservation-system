@@ -6,6 +6,7 @@ import com.diaa.movie_reservation.dto.show.ShowResponseExtended;
 import com.diaa.movie_reservation.entity.Movie;
 import com.diaa.movie_reservation.entity.Show;
 import com.diaa.movie_reservation.entity.Theater;
+import com.diaa.movie_reservation.exception.show.ShowNotFoundException;
 import com.diaa.movie_reservation.mapper.ShowMapper;
 import com.diaa.movie_reservation.repository.ShowRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -46,7 +47,7 @@ public class ShowService {
     public ShowResponseExtended getShowById(Long id) {
         log.info("Fetching show with ID: {}", id);
         Show show = showRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Show with id " + id + " does not exist."));
+                .orElseThrow(() -> new ShowNotFoundException("Show with id " + id + " does not exist."));
         return showMapper.toExtendedDTO(show);
     }
 
@@ -78,7 +79,7 @@ public class ShowService {
     public  ShowResponse update(Long id, ShowRequest request) {
         log.info("Updating show with ID: {}", id);
         Show show = showRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Show with id " + id + " does not exist."));
+                .orElseThrow(() -> new ShowNotFoundException("Show with id " + id + " does not exist."));
 
         Movie movie = movieService.getMovie(request.movieId());
         Theater theater = theaterService.getTheater(request.theaterId());
@@ -97,7 +98,7 @@ public class ShowService {
     public Show getShow(Long id) {
         log.info("Fetching show with ID: {}", id);
         return showRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Show with id " + id + " does not exist."));
+                .orElseThrow(() -> new ShowNotFoundException("Show with id " + id + " does not exist."));
     }
 
 }

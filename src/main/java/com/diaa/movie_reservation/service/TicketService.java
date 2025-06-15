@@ -3,15 +3,19 @@ package com.diaa.movie_reservation.service;
 import com.diaa.movie_reservation.dto.ticket.TicketRequest;
 import com.diaa.movie_reservation.dto.ticket.TicketResponse;
 import com.diaa.movie_reservation.entity.*;
+import com.diaa.movie_reservation.exception.seat.SeatAlreadyBookedException;
+import com.diaa.movie_reservation.exception.seat.SeatNotFoundException;
+import com.diaa.movie_reservation.exception.ticket.TicketNotFoundException;
+import com.diaa.movie_reservation.exception.user.UserNotFoundException;
 import com.diaa.movie_reservation.mapper.TicketMapper;
 import com.diaa.movie_reservation.repository.TicketRepository;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -28,20 +32,22 @@ public class TicketService {
     public TicketResponse bookTicket(TicketRequest request) {
         log.info("Booking ticket for request: {}", request);
 
-        // Validate user and show
-        User user = userService.getUser(request.userID());
+        User user = userService.getUser(request.userId());
         Show show = showService.getShow(request.showId());
         Seat seat = seatService.getSeat(request.seatId());
 
-        // 2) Verify the seat is in this show’s theater
         if (!seat.getTheater().getId().equals(show.getTheater().getId())) {
-            throw new EntityNotFoundException("Seat doesn't exist in the given theater");
+            throw new SeatNotFoundException("Seat doesn't exist in the given theater");
+        }
+
+        if (show.getShowTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Cannot book a ticket for a show that has already started");
         }
 
         boolean taken = ticketRepository
                 .existsByShowIdAndSeatIdAndStatus(show.getId(), seat.getId(), Status.BOOKED);
         if (taken) {
-            throw new EntityExistsException("Seat "
+            throw new SeatAlreadyBookedException("Seat "
                     + seat.getRowLabel() + seat.getNumber() + " is already booked for this show");
         }
 
@@ -63,35 +69,39 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse cancelTicket(Long ticketId) {
-        log.info("Cancelling ticket with ID: {}", ticketId);
+    public TicketResponse cancelTicket(Long ticketId, Authentication authentication) {
+        log.info("Cancelling ticket with ID: {} that belongs to the user with email: {}", ticketId, authentication.getName());
 
-        // Fetch the ticket
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null) {
+            throw new UserNotFoundException("User not found");
+        }
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
-        // Check if the ticket is already canceled or not booked
-        if (ticket.getStatus() != Status.BOOKED) {
-            throw new IllegalStateException("Ticket cannot be cancelled as it is not booked");
+        if (!ticket.getUser().getId().equals(user.getId())) {
+            throw new IllegalStateException("User does not own this ticket");
         }
 
-        // Update status to CANCELLED
+        if (ticket.getStatus() != Status.BOOKED) {
+            throw new TicketNotFoundException("Ticket cannot be cancelled as it is not booked");
+        }
+
         ticket.setStatus(Status.CANCELLED);
         Ticket updatedTicket = ticketRepository.save(ticket);
 
-        // Map to response DTO
         TicketResponse response = ticketMapper.toDTO(updatedTicket);
         log.info("Ticket cancelled successfully: {}", response);
         return response;
     }
 
     @Transactional(readOnly = true)
-    public List<Long> findSeatsByShowIdAndStatus(Long showId,Status status) {
+    public List<Long> findSeatsByShowIdAndStatus(Long showId, Status status) {
         log.info("Fetching taken seat IDs for show ID: {}", showId);
 
         // Validate show existence
         if (showId == null) {
-            throw new IllegalArgumentException("Show ID must not be null");
+            throw new NullPointerException("Show ID must not be null");
         }
 
         // Fetch taken seat IDs

@@ -3,6 +3,7 @@ package com.diaa.movie_reservation.service;
 import com.diaa.movie_reservation.dto.theater.TheaterRequest;
 import com.diaa.movie_reservation.dto.theater.TheaterResponse;
 import com.diaa.movie_reservation.entity.Theater;
+import com.diaa.movie_reservation.exception.theater.TheaterNotFoundException;
 import com.diaa.movie_reservation.mapper.TheaterMapper;
 import com.diaa.movie_reservation.repository.TheaterRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,14 +35,14 @@ public class TheaterService {
     public TheaterResponse getTheaterById(Short id) {
         log.info("Fetching theater with ID: {}", id);
         Theater theater = theaterRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Theater with id " + id + " does not exist."));
+                .orElseThrow(() -> new TheaterNotFoundException("Theater with id " + id + " does not exist."));
         return theaterMapper.toDTO(theater);
     }
 
     @Transactional(readOnly = true)
     public Theater getTheater(Short id){
         return theaterRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Theater with id " + id + " does not exist."));
+                .orElseThrow(() -> new TheaterNotFoundException("Theater with id " + id + " does not exist."));
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +61,7 @@ public class TheaterService {
     public TheaterResponse update(Short id, TheaterRequest request) {
         log.info("Updating theater with ID: {}", id);
         Theater theater = theaterRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Theater with id " + id + " does not exist."));
+                .orElseThrow(() -> new TheaterNotFoundException("Theater with id " + id + " does not exist."));
         theater.setName(request.name());
         theater.setLocation(request.location());
         theater.setTotalSeats(request.totalSeats());

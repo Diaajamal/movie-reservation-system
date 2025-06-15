@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +21,7 @@ public class TicketController {
 
     @Operation(summary = "Get ticket by ID")
     @PostMapping("/book")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<TicketResponse> bookTicket(@RequestBody @Valid TicketRequest request) {
         TicketResponse response = ticketService.bookTicket(request);
         return ResponseEntity.ok(response);
@@ -26,8 +29,9 @@ public class TicketController {
 
     @Operation(summary = "Cancel ticket by ID")
     @PutMapping("/cancel/{ticketId}")
-    public ResponseEntity<TicketResponse> cancelTicket(@PathVariable Long ticketId) {
-        TicketResponse response = ticketService.cancelTicket(ticketId);
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
+    public ResponseEntity<TicketResponse> cancelTicket(@PathVariable Long ticketId, Authentication authentication) {
+        TicketResponse response = ticketService.cancelTicket(ticketId,authentication);
         return ResponseEntity.ok(response);
     }
 }

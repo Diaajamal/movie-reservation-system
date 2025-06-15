@@ -4,6 +4,7 @@ import com.diaa.movie_reservation.dto.genre.GenreListResponse;
 import com.diaa.movie_reservation.dto.genre.GenreRequest;
 import com.diaa.movie_reservation.dto.genre.GenreResponse;
 import com.diaa.movie_reservation.entity.Genre;
+import com.diaa.movie_reservation.exception.genre.GenreNotFoundException;
 import com.diaa.movie_reservation.mapper.GenreMapper;
 import com.diaa.movie_reservation.repository.GenreRepository;
 import jakarta.persistence.EntityManager;
@@ -37,7 +38,7 @@ public class GenreService {
     @Transactional
     @CacheEvict(value = "genres", key = "'all'")
     public GenreResponse updateGenre(short id, GenreRequest request) {
-        Genre genre = genreRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Genre with id " + id + " does not exist."));
+        Genre genre = genreRepository.findById(id).orElseThrow(() -> new GenreNotFoundException("Genre with id " + id + " does not exist."));
         genre.setName(request.name());
         Genre updatedGenre = genreRepository.save(genre);
         return genreMapper.toDTO(updatedGenre);
@@ -75,7 +76,7 @@ public class GenreService {
     @CacheEvict(value = "genres", key = "'all'")
     public void deleteGenre(short id) {
         if (!genreRepository.existsById(id)) {
-            throw new EntityNotFoundException("Genre with id " + id + " does not exist.");
+            throw new GenreNotFoundException("Genre with id " + id + " does not exist.");
         }
         genreRepository.deleteGenreFromMovieGenres(id);
         genreRepository.deleteById(id);

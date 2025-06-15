@@ -33,6 +33,7 @@ public class SeatController {
     //get all seats by theater id
     @GetMapping("/theater/{theaterId}")
     @Operation(summary = "Get all seats by theater ID")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<SeatResponse>> getSeatsByTheater(@PathVariable Short theaterId,
                                                                 @RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
@@ -43,6 +44,7 @@ public class SeatController {
     //get available seats by show id
     @GetMapping("/available/{showId}")
     @Operation(summary = "Get available seats by show ID")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<SeatResponse>> getAvailableSeatsByShow(@PathVariable Long showId,
                                                                       @RequestParam(defaultValue = "0") int page,
                                                                       @RequestParam(defaultValue = "10") int size) {

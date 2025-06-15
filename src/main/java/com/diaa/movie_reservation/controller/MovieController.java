@@ -21,7 +21,7 @@ public class MovieController {
     private final MovieService movieService;
 
     @Operation(summary = "Add a new movie")
-    @PreAuthorize("hasAuthority('ADMIN')")  // Only ADMIN can add movies
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<MovieResponse> add(@RequestBody @Valid MovieRequest movieRequest) {
         MovieResponse response = movieService.addMovie(movieRequest);
@@ -30,12 +30,14 @@ public class MovieController {
 
     @Operation(summary = "Get a movie by id")
     @GetMapping("get/{id}")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<MovieResponse> getMovieById(@PathVariable Long id) {
         MovieResponse movie = movieService.getMovieById(id);
         return ResponseEntity.ok(movie);
     }
 
     @GetMapping("/all")
+    @PreAuthorize( "hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Page<MovieResponse>> getAllMovies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
