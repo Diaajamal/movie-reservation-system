@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,17 +40,15 @@ public class TicketService {
         Show show = showService.getShow(request.showId());
         Seat seat = seatService.getSeatForUpdate(request.seatId());
 
-        if (!seat.getTheater().getId().equals(show.getTheater().getId())) {
+        if (!verifySeatBelongsToTheater(seat, show)) {
             throw new SeatNotFoundException("Seat doesn't exist in the given theater");
         }
 
-        if (show.getShowTime().isBefore(LocalDateTime.now())) {
+        if (isShowStarted(show)) {
             throw new IllegalArgumentException("Cannot book a ticket for a show that has already started");
         }
 
-        boolean taken = ticketRepository
-                .existsByShowIdAndSeatIdAndStatus(show.getId(), seat.getId(), Status.BOOKED);
-        if (taken) {
+        if (isSeatBooked(show.getId(), seat.getId())) {
             throw new SeatAlreadyBookedException("Seat "
                     + seat.getRowLabel() + seat.getNumber() + " is already booked for this show");
         }
@@ -74,6 +73,17 @@ public class TicketService {
         }
     }
 
+    private boolean verifySeatBelongsToTheater(Seat seat, Show show) {
+        return seat.getTheater().getId().equals(show.getTheater().getId());
+    }
+
+    private boolean isShowStarted(Show show) {
+        return show.getShowTime().isBefore(LocalDateTime.now());
+    }
+
+    private boolean isSeatBooked(Long showId, Long seatId) {
+        return ticketRepository.existsByShowIdAndSeatIdAndStatus(showId, seatId, Status.BOOKED);
+    }
 
     @Transactional
     public TicketResponse cancelTicket(Long ticketId, Authentication authentication) {
@@ -86,7 +96,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
-        if (!ticket.getUser().getId().equals(user.getId())) {
+        if (!isUserTicketOwner(ticket, user)) {
             throw new IllegalStateException("User does not own this ticket");
         }
 
@@ -100,6 +110,10 @@ public class TicketService {
         TicketResponse response = ticketMapper.toDTO(updatedTicket);
         log.info("Ticket cancelled successfully: {}", response);
         return response;
+    }
+
+    private boolean isUserTicketOwner(Ticket ticket, User user) {
+        return ticket.getUser().getId().equals(user.getId());
     }
 
     @Transactional(readOnly = true)
