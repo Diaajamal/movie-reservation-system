@@ -12,12 +12,4 @@ import java.util.List;
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
    boolean existsByShowIdAndSeatIdAndStatus(Long showId, Long seatId, Status status);
-
-    @Query("""
-    SELECT t.seat.id
-      FROM Ticket t
-     WHERE t.show.id   = :showId
-       AND t.status    = :status
-  """)
-    List<Long> findSeatsByShowIdAndStatus(@Param("showId") Long showId, @Param("status") Status status);
 }

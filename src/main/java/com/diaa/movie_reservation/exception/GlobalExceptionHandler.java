@@ -11,7 +11,7 @@ import com.diaa.movie_reservation.exception.ticket.TicketNotFoundException;
 import com.diaa.movie_reservation.exception.user.InvalidCredentialsException;
 import com.diaa.movie_reservation.exception.user.UserAlreadyExistsException;
 import com.diaa.movie_reservation.exception.user.UserNotFoundException;
-import org.apache.coyote.BadRequestException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -48,6 +48,16 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Data integrity violation",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SeatAlreadyBookedException.class)

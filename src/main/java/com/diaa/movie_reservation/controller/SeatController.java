@@ -48,7 +48,7 @@ public class SeatController {
     public ResponseEntity<Page<SeatResponse>> getAvailableSeatsByShow(@PathVariable Long showId,
                                                                       @RequestParam(defaultValue = "0") int page,
                                                                       @RequestParam(defaultValue = "10") int size) {
-        Page<SeatResponse> response = seatService.getAvailableSeatsByShow(showId, PageRequest.of(page, size));
+        Page<SeatResponse> response = seatService.findAvailableSeatsByShow(showId, PageRequest.of(page, size));
         return ResponseEntity.ok(response);
     }
 

@@ -3,14 +3,11 @@ package com.diaa.movie_reservation.service;
 import com.diaa.movie_reservation.dto.seat.SeatRequest;
 import com.diaa.movie_reservation.dto.seat.SeatResponse;
 import com.diaa.movie_reservation.entity.Seat;
-import com.diaa.movie_reservation.entity.Show;
-import com.diaa.movie_reservation.entity.Status;
 import com.diaa.movie_reservation.entity.Theater;
 import com.diaa.movie_reservation.exception.seat.SeatExistsException;
 import com.diaa.movie_reservation.exception.seat.SeatNotFoundException;
 import com.diaa.movie_reservation.mapper.SeatMapper;
 import com.diaa.movie_reservation.repository.SeatRepository;
-import com.diaa.movie_reservation.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Slf4j
 @Service
@@ -27,7 +23,6 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final TheaterService theaterService;
     private final ShowService showService;
-    private final TicketRepository ticketRepository;
     private final SeatMapper seatMapper;
 
 
@@ -54,20 +49,18 @@ public class SeatService {
         return seats.map(seatMapper::toDTO);
     }
 
-
     @Transactional(readOnly = true)
-    public Page<SeatResponse> getAvailableSeatsByShow(Long showId,Pageable pageable) {
-        log.info("Fetching available seats for show ID: {}", showId);
-        // Validate show existence
-        Show show = showService.getShow(showId);
+    public Page<SeatResponse> findAvailableSeatsByShow(Long showId, Pageable pageable) {
+       showService.getShow(showId);
 
-        List<Long> taken = ticketRepository.findSeatsByShowIdAndStatus(showId, Status.BOOKED);
-        log.info("Found {} taken seat IDs for show ID: {}", taken.size(), showId);
+        Page<Seat> availableSeats = seatRepository.findAvailableSeats(showId, pageable);
 
-        Page<Seat> freeSeats = seatRepository.findByTheater_IdAndIdNotIn(show.getTheater().getId(), taken.isEmpty() ? List.of(-1L) : taken,pageable);
+        if (availableSeats.isEmpty()) {
+            log.warn("No available seats found for show ID {}", showId);
+            throw new SeatNotFoundException("No available seats found for show ID " + showId);
+        }
 
-        log.info("Found {} available seats for show ID: {}", freeSeats.getTotalElements(), showId);
-        return freeSeats.map(seatMapper::toDTO);
+        return availableSeats.map(seatMapper::toDTO);
     }
 
     public Seat getSeatForUpdate(Long id) {

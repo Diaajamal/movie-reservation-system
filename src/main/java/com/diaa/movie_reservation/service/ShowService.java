@@ -11,6 +11,9 @@ import com.diaa.movie_reservation.mapper.ShowMapper;
 import com.diaa.movie_reservation.repository.ShowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,10 +39,15 @@ public class ShowService {
         Show show = showMapper.toEntity(request);
         show.setMovie(movie);
         show.setTheater(theater);
+        try {
+            Show savedShow = showRepository.save(show);
+            log.info("Show added successfully with ID: {}", savedShow.getId());
+            return showMapper.toDTO(savedShow);
+        } catch (DataIntegrityViolationException e) {
+            log.error("Error adding show: {}", e.getMessage());
+            throw new DataIntegrityViolationException("Show with the same movie and theater at the same time already exists.");
+        }
 
-        Show savedShow = showRepository.save(show);
-        log.info("Show added successfully with ID: {}", savedShow.getId());
-        return showMapper.toDTO(savedShow);
     }
 
     @Transactional(readOnly = true)
@@ -63,9 +71,10 @@ public class ShowService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "upcomingShows", key = "#root.methodName + '_' + #showTimeAfter + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<ShowResponse> getUpcomingShows(LocalDateTime showTimeAfter, Pageable pageable) {
         log.info("Fetching upcoming shows with pagination: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
-        Page<Show> shows = showRepository.findAllByShowTimeAfter(showTimeAfter,pageable);
+        Page<Show> shows = showRepository.findAllByShowTimeAfter(showTimeAfter, pageable);
         if (shows.isEmpty()) {
             log.warn("No upcoming shows found");
         } else {
@@ -75,7 +84,8 @@ public class ShowService {
     }
 
     @Transactional
-    public  ShowResponse update(Long id, ShowRequest request) {
+    @CacheEvict(value = "upcomingShows", allEntries = true, beforeInvocation = false)
+    public ShowResponse update(Long id, ShowRequest request) {
         log.info("Updating show with ID: {}", id);
         Show show = showRepository.findById(id)
                 .orElseThrow(() -> new ShowNotFoundException("Show with id " + id + " does not exist."));
