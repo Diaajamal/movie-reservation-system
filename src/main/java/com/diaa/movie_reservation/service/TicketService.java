@@ -11,8 +11,10 @@ import com.diaa.movie_reservation.mapper.TicketMapper;
 import com.diaa.movie_reservation.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -51,7 +53,6 @@ public class TicketService {
                     + seat.getRowLabel() + seat.getNumber() + " is already booked for this show");
         }
 
-        // Map request to entity
         Ticket ticket = ticketMapper.toEntity(request);
 
         ticket.setSeat(seat);
@@ -59,14 +60,19 @@ public class TicketService {
         ticket.setShow(show);
         ticket.setStatus(Status.BOOKED);
 
-        // Save ticket
-        Ticket savedTicket = ticketRepository.save(ticket);
+        try {
+            Ticket savedTicket = ticketRepository.save(ticket);
 
-        // Return response
-        TicketResponse response = ticketMapper.toDTO(savedTicket);
-        log.info("Ticket booked successfully: {}", response);
-        return response;
+            TicketResponse response = ticketMapper.toDTO(savedTicket);
+            log.info("Ticket booked successfully: {}", response);
+            return response;
+        } catch (DataIntegrityViolationException ex) {
+            log.error("Seat {}{} for show {} already booked", seat.getRowLabel(), seat.getNumber(), show.getId());
+            throw new SeatAlreadyBookedException("Seat "
+                    + seat.getRowLabel() + seat.getNumber() + " is already booked for this show", ex);
+        }
     }
+
 
     @Transactional
     public TicketResponse cancelTicket(Long ticketId, Authentication authentication) {
