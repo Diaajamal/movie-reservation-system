@@ -4,81 +4,16 @@ A Spring Boot application for managing movie theaters, shows, seat reservations,
 
 ## Table of Contents
 
+* [Database Schema](#database-schema)
+* [ER Diagram](#er-diagram)
 * [Features](#features)
 * [Tech Stack](#tech-stack)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
 * [Configuration](#configuration)
-* [Database Schema](#database-schema)
-* [ER Diagram](#er-diagram)
 * [API Endpoints](#api-endpoints)
 * [Usage](#usage)
 * [License](#license)
-
-## Features
-
-* User registration & role-based authentication (JWT)
-* CRUD operations for genres, movies, theaters, shows, seats
-* Bulk seat booking with pessimistic & Redis distributed locks
-* Ticket management with status tracking and unique booking constraints
-* Reporting and analytics
-
-## Tech Stack
-
-* Java 17 & Spring Boot
-* Spring Security & JWT
-* PostgreSQL
-* Redis
-* Docker & Docker Compose
-* Maven
-* Lombok & MapStruct
-
-## Prerequisites
-
-* Java 17+
-* Maven 3.6+
-* PostgreSQL 12+
-* Redis
-* Docker & Docker Compose (optional)
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/<username>/movie-reservation-system.git
-   cd movie-reservation-system
-   ```
-2. Configure database & redis in `src/main/resources/application.yml`.
-3. Build the project:
-
-   ```bash
-   mvn clean install
-   ```
-4. Run the application:
-
-   ```bash
-   mvn spring-boot:run
-   ```
-
-## Configuration
-
-Edit `src/main/resources/application.yml`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/moviereservation
-    username: your_db_user
-    password: your_db_password
-  redis:
-    host: localhost
-    port: 6379
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-```
 
 ## Database Schema
 
@@ -183,6 +118,70 @@ erDiagram
     seats ||--o{ tickets : reserved_for
 ```
 
+## Features
+
+* User registration & role-based authentication (JWT)
+* CRUD operations for genres, movies, theaters, shows, seats
+* Bulk seat booking with pessimistic & Redis distributed locks
+* Ticket management with status tracking and unique booking constraints
+* Reporting and analytics
+
+## Tech Stack
+
+* Java 17 & Spring Boot
+* Spring Security & JWT
+* PostgreSQL
+* Redis
+* Docker & Docker Compose
+* Maven
+* Lombok & MapStruct
+
+## Prerequisites
+
+* Java 17+
+* Maven 3.6+
+* PostgreSQL 12+
+* Redis
+* Docker & Docker Compose (optional)
+
+## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/<username>/movie-reservation-system.git
+   cd movie-reservation-system
+   ```
+2. Configure database & redis in `src/main/resources/application.yml`.
+3. Build the project:
+
+   ```bash
+   mvn clean install
+   ```
+4. Run the application:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+## Configuration
+
+Edit `src/main/resources/application.yml`:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/moviereservation
+    username: your_db_user
+    password: your_db_password
+  redis:
+    host: localhost
+    port: 6379
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+```
 ## API Endpoints
 
 Refer to each controller for endpoints. Example:
