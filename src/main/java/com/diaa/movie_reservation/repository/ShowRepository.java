@@ -24,7 +24,7 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
       s.id,
       s.rowLabel,
       s.number,
-      COALESCE(t.status, com.diaa.movie_reservation.entity.Status.AVAILABLE)
+      COALESCE(t.status)
     )
     FROM Seat s
     LEFT JOIN Ticket t

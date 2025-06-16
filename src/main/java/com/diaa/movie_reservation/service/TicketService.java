@@ -15,12 +15,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -31,6 +33,8 @@ public class TicketService {
     private final ShowService showService;
     private final SeatService seatService;
     private final TicketMapper ticketMapper;
+    private final DistributedLockService distributedLockService;
+
 
     @Transactional
     public TicketResponse bookTicket(TicketRequest request) {
@@ -39,22 +43,15 @@ public class TicketService {
         User user = userService.getUser(request.userId());
         Show show = showService.getShow(request.showId());
         Seat seat = seatService.getSeatForUpdate(request.seatId());
-
-        if (!verifySeatBelongsToTheater(seat, show)) {
-            throw new SeatNotFoundException("Seat doesn't exist in the given theater");
-        }
-
-        if (isShowStarted(show)) {
-            throw new IllegalArgumentException("Cannot book a ticket for a show that has already started");
-        }
-
-        if (isSeatBooked(show.getId(), seat.getId())) {
+        verifySeatBelongsToTheater(seat, show);
+        verifyShowDidNotStart(show);
+        String lockKey = show.getId() + ":" + seat.getId();
+        if (!distributedLockService.acquireLock(lockKey, 5, TimeUnit.SECONDS)) {
             throw new SeatAlreadyBookedException("Seat "
-                    + seat.getRowLabel() + seat.getNumber() + " is already booked for this show");
+                    + seat.getRowLabel() + seat.getNumber() + " is being booked. Please try again");
         }
-
+        verifySeatIsAvailable(show.getId(), seat.getId());
         Ticket ticket = ticketMapper.toEntity(request);
-
         ticket.setSeat(seat);
         ticket.setUser(user);
         ticket.setShow(show);
@@ -62,27 +59,36 @@ public class TicketService {
 
         try {
             Ticket savedTicket = ticketRepository.save(ticket);
-
             TicketResponse response = ticketMapper.toDTO(savedTicket);
             log.info("Ticket booked successfully: {}", response);
             return response;
+        } catch (ObjectOptimisticLockingFailureException ex) {
+            log.error("Optimistic lock error booking seat {}{} for show {}", seat.getRowLabel(), seat.getNumber(), show.getId());
+            throw new SeatAlreadyBookedException("Seat "
+                    + seat.getRowLabel() + seat.getNumber() + " is being booked", ex);
         } catch (DataIntegrityViolationException ex) {
             log.error("Seat {}{} for show {} already booked", seat.getRowLabel(), seat.getNumber(), show.getId());
             throw new SeatAlreadyBookedException("Seat "
                     + seat.getRowLabel() + seat.getNumber() + " is already booked for this show", ex);
+        } finally {
+            distributedLockService.releaseLock(lockKey);
         }
     }
 
-    private boolean verifySeatBelongsToTheater(Seat seat, Show show) {
-        return seat.getTheater().getId().equals(show.getTheater().getId());
+    private void verifySeatBelongsToTheater(Seat seat, Show show) {
+        if (!seat.getTheater().getId().equals(show.getTheater().getId()))
+            throw new SeatNotFoundException("Seat doesn't exist in the given theater");
     }
 
-    private boolean isShowStarted(Show show) {
-        return show.getShowTime().isBefore(LocalDateTime.now());
+    private void verifyShowDidNotStart(Show show) {
+        if (show.getShowTime().isBefore(LocalDateTime.now()))
+            throw new IllegalArgumentException("Cannot book a ticket for a show that has already started");
     }
 
-    private boolean isSeatBooked(Long showId, Long seatId) {
-        return ticketRepository.existsByShowIdAndSeatIdAndStatus(showId, seatId, Status.BOOKED);
+    private void verifySeatIsAvailable(Long showId, Long seatId) {
+        if (ticketRepository.existsByShowIdAndSeatIdAndStatus(showId, seatId, Status.BOOKED)) {
+            throw new SeatAlreadyBookedException("Seat is Already Booked for this show");
+        }
     }
 
     @Transactional
