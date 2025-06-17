@@ -1,35 +1,93 @@
 # Movie Reservation System
 
-A Spring Boot application for managing movie theaters, shows, seat reservations, and ticketing with JWT security and PostgreSQL/Redis backend.
+A Spring Boot web application for managing movie theaters, showtimes, seat reservations, and ticketing. It features role-based access control with JWT authentication, a PostgreSQL relational database (with Redis caching/locking), and a rich REST API for both admins and regular users.
+
+---
 
 ## Table of Contents
 
-* [Database Schema](#database-schema)
-* [ER Diagram](#er-diagram)
-* [Features](#features)
-* [Tech Stack](#tech-stack)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Configuration](#configuration)
-* [API Endpoints](#api-endpoints)
-* [Usage](#usage)
-* [License](#license)
+- [Features](#features)  
+- [Architecture](#architecture)  
+- [Database Schema](#database-schema)  
+- [ER Diagram](#er-diagram)  
+- [Tech Stack](#tech-stack)  
+- [Prerequisites](#prerequisites)  
+- [Installation](#installation)  
+  - [Using Maven (Local)](#using-maven-local)  
+  - [Using Docker Compose (Containerized)](#using-docker-compose-containerized)  
+- [Configuration](#configuration)  
+- [API Endpoints](#api-endpoints)  
+  - [Authentication](#authentication)  
+  - [Movie Management](#movie-management)  
+  - [Show Management](#show-management)  
+  - [Reservations](#reservations)  
+  - [Reporting](#reporting)  
+- [Usage](#usage)  
+- [License](#license)  
+
+---
+
+## Features
+
+- **User Roles & Authentication**  
+  - Admin and Regular User roles  
+  - Secure JWT-based login  
+  - Role-based endpoint protection  
+
+- **Movie & Show Management**  
+  - CRUD operations for movies, genres, theaters, shows, and seats (admins)  
+  - Browse movies and upcoming shows (users)  
+
+- **Seat Reservation**  
+  - Select individual seats  
+  - Prevent double-booking with pessimistic locking and Redis-backed distributed locks  
+  - Unique constraint on (show, seat) to enforce one booking per seat  
+
+- **Ticket Management**  
+  - Book and cancel tickets  
+  - Track ticket status (BOOKED, CANCELLED)  
+  - Users can view and manage their own bookings  
+
+- **Reporting & Analytics**  
+  - Admin reports on reservations, capacity, and revenue  
+
+- **Interactive API Docs**  
+  - Swagger/OpenAPI UI for exploring and testing endpoints  
+
+- **Error Handling**  
+  - Global exception handler for consistent JSON error responses  
+
+---
+
+## Architecture
+
+Layered design:
+
+1. **Controllers** expose REST endpoints  
+2. **Services** contain business logic and transaction management  
+3. **Repositories** use Spring Data JPA for data access  
+4. **Entities** map to database tables  
+5. **DTOs & MapStruct** handle request/response payloads  
+
+Concurrency control and data integrity are enforced via Redis locks, database constraints, and (optionally) optimistic locking.
+
+---
 
 ## Database Schema
 
-The database schema includes the following tables:
+| Table            | Description                                                      |
+|------------------|------------------------------------------------------------------|
+| `users`          | Registered users (credentials, roles)                            |
+| `user_roles`     | Roles assigned to users (e.g. USER, ADMIN)                       |
+| `genres`         | Movie genres (Action, Drama, etc.)                               |
+| `movies`         | Movie details (title, director, duration, release date, poster)  |
+| `movie_genres`   | Join table linking movies and genres                             |
+| `theaters`       | Auditorium halls (name, total seats, location)                   |
+| `seats`          | Individual seats per theater (row label + number)                |
+| `shows`          | Scheduled showtimes (movie, theater, time, price)                |
+| `tickets`        | Booked tickets linking user, show, seat, status, and price paid  |
 
-| Table          | Description                                        |
-| -------------- | -------------------------------------------------- |
-| `users`        | Registered users                                   |
-| `user_roles`   | Roles assigned to users                            |
-| `genres`       | Movie genres                                       |
-| `movies`       | Movie details                                      |
-| `movie_genres` | Many-to-many relation between movies and genres    |
-| `theaters`     | Theater halls                                      |
-| `seats`        | Seats in each theater                              |
-| `shows`        | Screenings of movies in theaters at specific times |
-| `tickets`      | Booked tickets for shows with seat assignments     |
+---
 
 ## ER Diagram
 
@@ -38,50 +96,43 @@ erDiagram
     users {
         BIGINT id PK
         VARCHAR username
-        VARCHAR password_hash
         VARCHAR email UK
+        VARCHAR password_hash
         TIMESTAMP created_at
     }
-    
     user_roles {
         BIGINT user_id PK,FK
         VARCHAR role PK
     }
-    
     genres {
         SMALLINT id PK
         VARCHAR name UK
     }
-    
     movies {
         BIGINT id PK
         VARCHAR title
-        VARCHAR description
+        TEXT description
         VARCHAR director
         INTEGER duration
         DATE release_date
         VARCHAR poster_url
     }
-    
     movie_genres {
         BIGINT movie_id PK,FK
         SMALLINT genre_id PK,FK
     }
-    
     theaters {
         SMALLINT id PK
         VARCHAR name
         INTEGER total_seats
         VARCHAR location
     }
-    
     seats {
         BIGINT id PK
         SMALLINT theater_id FK
         VARCHAR row_label
         SMALLINT number
     }
-    
     shows {
         BIGINT id PK
         BIGINT movie_id FK
@@ -91,7 +142,6 @@ erDiagram
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
-    
     tickets {
         BIGINT id PK
         BIGINT user_id FK
@@ -103,128 +153,176 @@ erDiagram
         TIMESTAMP updated_at
     }
 
-    %% Relationships
     users ||--o{ user_roles : has
-    users ||--o{ tickets : books
-    
+    users ||--o{ tickets    : books
     genres ||--o{ movie_genres : categorizes
-    movies ||--o{ movie_genres : belongs_to
-    movies ||--o{ shows : scheduled_in
-    
-    theaters ||--o{ seats : contains
-    theaters ||--o{ shows : hosts
-    
-    shows ||--o{ tickets : generates
-    seats ||--o{ tickets : reserved_for
+    movies ||--o{ movie_genres : categorized_by
+    movies ||--o{ shows       : screens
+    theaters ||--o{ seats     : contains
+    theaters ||--o{ shows     : hosts
+    shows    ||--o{ tickets   : issues
+    seats    ||--o{ tickets   : reserved_for
 ```
 
-## Features
-
-* User registration & role-based authentication (JWT)
-* CRUD operations for genres, movies, theaters, shows, seats
-* Bulk seat booking with pessimistic & Redis distributed locks
-* Ticket management with status tracking and unique booking constraints
-* Reporting and analytics
+---
 
 ## Tech Stack
 
-* Java 17 & Spring Boot
-* Spring Security & JWT
-* PostgreSQL
-* Redis
-* Docker & Docker Compose
-* Maven
-* Lombok & MapStruct
+- **Java 17+ & Spring Boot 3.x**  
+- **Spring Data JPA & Hibernate** (ORM for PostgreSQL)  
+- **Spring Security & JWT** (stateless authentication)  
+- **PostgreSQL** (relational database)  
+- **Redis** (caching & distributed locking)  
+- **Flyway** (DB migrations)  
+- **springdoc-openapi (Swagger UI)** (interactive API docs)  
+- **MapStruct** (DTO ↔ entity mapping)  
+- **Lombok** (boilerplate reduction)  
+- **Maven** (build & dependency management)  
+- **Docker & Docker Compose** (containerization)
+
+---
 
 ## Prerequisites
 
-* Java 17+
-* Maven 3.6+
-* PostgreSQL 12+
-* Redis
-* Docker & Docker Compose (optional)
+- **Java 17** or higher  
+- **Maven 3.6+**  
+- **Docker & Docker Compose** (optional, for containerized setup)
+
+---
 
 ## Installation
 
-1. Clone the repository:
+### Local (Maven)
 
+1. **Clone the repo**  
    ```bash
-   git clone https://github.com/<username>/movie-reservation-system.git
+   git clone https://github.com/your-org/movie-reservation-system.git
    cd movie-reservation-system
    ```
-2. Configure database & redis in `src/main/resources/application.yml`.
-3. Build the project:
 
+2. **Start Postgres & Redis** (locally or via Docker):  
+   ```bash
+   docker run -d --name postgres -e POSTGRES_DB=moviedb      -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=example      -p 5432:5432 postgres:15-alpine
+
+   docker run -d --name redis -p 6379:6379 redis:7-alpine
+   ```
+
+3. **Configure**  
+   Edit `src/main/resources/application.yaml` to match your DB/Redis settings.
+
+4. **Build & Run**  
    ```bash
    mvn clean install
-   ```
-4. Run the application:
-
-   ```bash
    mvn spring-boot:run
    ```
 
+### Containerized (Docker Compose)
+
+1. **Build JAR**  
+   ```bash
+   mvn clean package -DskipTests
+   ```
+
+2. **Launch**  
+   ```bash
+   docker-compose up --build
+   ```
+
+The app will be available at <http://localhost:8080> and Swagger UI at <http://localhost:8080/swagger-ui.html>.
+
+---
+
 ## Configuration
 
-Edit `src/main/resources/application.yml`:
+Edit the following in `application.yaml` or via environment variables:
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/moviereservation
-    username: your_db_user
-    password: your_db_password
-  redis:
-    host: localhost
-    port: 6379
+    url: jdbc:postgresql://postgres:5432/moviedb
+    username: postgres
+    password: example
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+  redis:
+    host: redis
+    port: 6379
+
+jwt:
+  secret: your-secret-key
+  expiration-ms: 3600000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+server:
+  port: 8080
 ```
+
+---
+
 ## API Endpoints
+
+All endpoints (except `/api/v1/auth/**`) require a valid JWT in the `Authorization: Bearer <token>` header.
 
 ### Authentication
 
-- `POST /api/auth/register` – Register user
-- `POST /api/auth/login` – Authenticate user
+| Method | Path                      | Description                 |
+| ------ | ------------------------- | --------------------------- |
+| POST   | `/api/v1/auth/register`   | Register a new user         |
+| POST   | `/api/v1/auth/login`      | Authenticate and obtain JWT |
 
-### Movie Management
+### Movies
 
-- `POST /api/v1/movies/add` – Add a movie
-- `GET /api/v1/movies/get/{id}` – Get movie by ID
-- `GET /api/v1/movies/all` – List movies with pagination
-- `PUT /api/v1/movies/update/{id}` – Update movie details
-- `DELETE /api/v1/movies/delete/{id}` – Delete movie
+| Method | Path                         | Role    | Description             |
+| ------ | ---------------------------- | ------- | ----------------------- |
+| GET    | `/api/v1/movies`             | Any     | List all movies         |
+| GET    | `/api/v1/movies/{id}`        | Any     | Get movie details       |
+| POST   | `/api/v1/movies`             | Admin   | Create a new movie      |
+| PUT    | `/api/v1/movies/{id}`        | Admin   | Update an existing movie|
+| DELETE | `/api/v1/movies/{id}`        | Admin   | Delete a movie          |
 
-### Show Management
+### Shows
 
-- `POST /api/v1/shows/add` – Add show
-- `GET /api/v1/shows/get/{id}` – Get show details
-- `GET /api/v1/shows/all` – List shows with filters
-- `GET /api/v1/shows/upcoming` – List upcoming shows
-- `PUT /api/v1/shows/update/{id}` – Update show details
-- `GET /api/v1/shows/{showId}/seats` – Get seat details for a show
+| Method | Path                           | Role    | Description                     |
+| ------ | ------------------------------ | ------- | ------------------------------- |
+| GET    | `/api/v1/shows`                | Any     | List all shows                  |
+| GET    | `/api/v1/shows/{id}`           | Any     | Get details for one show        |
+| POST   | `/api/v1/shows`                | Admin   | Schedule a new show             |
+| PUT    | `/api/v1/shows/{id}`           | Admin   | Update show details             |
+| GET    | `/api/v1/shows/{id}/seats`     | Any     | Get seat availability for a show|
 
 ### Reservations
 
-- `POST /api/v1/reservations/reserve` – Book ticket
-- `PUT /api/v1/reservations/cancel/{ticketId}` – Cancel ticket
-- `GET /api/v1/reservations/me` – Get current user's reservations
+| Method | Path                                  | Role    | Description                        |
+| ------ | ------------------------------------- | ------- | ---------------------------------- |
+| POST   | `/api/v1/reservations`                | Any     | Book a ticket for a show           |
+| PUT    | `/api/v1/reservations/{id}/cancel`    | Any     | Cancel an existing booking         |
+| GET    | `/api/v1/reservations/me`             | User    | List my current bookings           |
 
-### Reporting
+### Reporting (Admin)
 
-- `GET /api/v1/reports/reservations` – List reservations with filters
+| Method | Path                               | Role    | Description                        |
+| ------ | ---------------------------------- | ------- | ---------------------------------- |
+| GET    | `/api/v1/reports/reservations`     | Admin   | Retrieve reservation reports       |
+
+---
 
 ## Usage
 
-Use Postman or curl to test endpoints. Include JWT in the header:
+1. **Register** or use existing credentials.  
+2. **Login** (`/api/v1/auth/login`) to receive a JWT.  
+3. **Authorize** in Swagger UI or your HTTP client:  
+   ```
+   Authorization: Bearer <your-token>
+   ```  
+4. **Explore** endpoints, book and cancel tickets, manage movies and shows.
 
-```
-Authorization: Bearer <token>
-```
+---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
