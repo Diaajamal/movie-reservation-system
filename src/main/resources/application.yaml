@@ -3,9 +3,9 @@ spring:
     name: Movie Reservation System
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/movie_reservation_db
-    username: postgres
-    password: root
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/movie_reservation_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -14,8 +14,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
     open-in-view: false
 
 
@@ -27,12 +27,19 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
 
   sql:
     init:
       mode: always
+
+logging:
+  level:
+    # Hibernate SQL statements
+    org.hibernate.SQL: WARN
+    # Hibernate bind parameters
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
 server:
   port: 8080
@@ -42,7 +49,7 @@ server:
 #  port: 8081
 
 jwt:
-  secret: 0klajsdflkj23oiuwerlkajsdf9348uwef  # generate a strong random key!
+  secret: 6c26c77b32d00771d60ebb853e59115bfb4facf5cbedf3029afc2c8f4d89ab7e
   expiration: 3600000                     # 1h
 
 springdoc:

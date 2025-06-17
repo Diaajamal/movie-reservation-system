@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,15 +61,14 @@ public class TicketService {
             TicketResponse response = ticketMapper.toDTO(savedTicket);
             log.info("Ticket booked successfully: {}", response);
             return response;
-        } catch (ObjectOptimisticLockingFailureException ex) {
-            log.error("Optimistic lock error booking seat {}{} for show {}", seat.getRowLabel(), seat.getNumber(), show.getId());
-            throw new SeatAlreadyBookedException("Seat "
-                    + seat.getRowLabel() + seat.getNumber() + " is being booked", ex);
         } catch (DataIntegrityViolationException ex) {
             log.error("Seat {}{} for show {} already booked", seat.getRowLabel(), seat.getNumber(), show.getId());
             throw new SeatAlreadyBookedException("Seat "
                     + seat.getRowLabel() + seat.getNumber() + " is already booked for this show", ex);
-        } finally {
+        } catch (Exception ex){
+            log.error("Error booking ticket for seat {}{} for show {}: {}", seat.getRowLabel(), seat.getNumber(), show.getId(), ex.getMessage());
+            throw new RuntimeException("Error booking ticket", ex);
+        }finally {
             distributedLockService.releaseLock(lockKey);
         }
     }
